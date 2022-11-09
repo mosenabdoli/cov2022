@@ -1,9 +1,9 @@
 #include "yuv.h"
 
-yuv::yuv(string in_addr, string out_addr, int width, int height, int numFrames)
+yuv::yuv(string in_path, string out_path, int width, int height, int numFrames)
 {
-   in_address = in_addr;
-   out_address = out_addr;
+   in_address = in_path;
+   out_address = out_path;
    m_width = width;
    m_height = height;
    m_numFrames = numFrames;
