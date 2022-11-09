@@ -34,7 +34,7 @@ void yuv::read_yuv_frame(int * raw_dst, int frame_idx)
    int* raw_src_tmp = raw_dst;
    if (fid_file.is_open()) {
       fid_file.seekg(0, fid_file.end);
-      int length = fid_file.tellg();
+      int length = static_cast<int>(fid_file.tellg());
       int length_in_frame = length / m_numFrames;
       fid_file.seekg(length_in_frame * frame_idx, fid_file.beg);
       std::vector<uint8_t> buff_v(m_width);
@@ -93,7 +93,8 @@ void yuv::read_two_frames(int * raw_dst_1, int idx1, int * raw_dst_2, int idx2, 
 
 void yuv::read_select_write(int *frame_idx, int numFrames)
 {
-   int * raw_tmp = new int[m_width*m_height];
+   int * raw_tmp; 
+   raw_tmp = new int[m_width*m_height];
 
    bool isFirst = true;
    for (int frame = 0; frame < numFrames; frame++)
@@ -104,6 +105,7 @@ void yuv::read_select_write(int *frame_idx, int numFrames)
       isFirst = false;
    }
 
+   delete[] raw_tmp;
    return;
 }
 
@@ -143,7 +145,9 @@ int yuv::ssd_block(int cur_block_pos_x, int cur_block_pos_y, int ref_block_pos_x
    get_block(ref_block_pos_x, ref_block_pos_y, block_size, reference_frame, ref_block);
    int ssd = 0;
    for (int pixel = 0; pixel < block_size * block_size; pixel++)
-      ssd += pow((curr_block[pixel] - ref_block[pixel]), 2);
+      ssd += static_cast<int>(pow((curr_block[pixel] - ref_block[pixel]), 2));
+   delete[] curr_block;
+   delete[] ref_block;
    return ssd;
 }
 
@@ -213,24 +217,26 @@ void yuv::motion_estimation_frame(int search_size, int block_size, int *referenc
    const int num_block_hor = m_width / block_size;
    const int num_block_ver = m_height / block_size;
    printf("progress:");
-   for (int y = 0; y <= num_block_ver / 10; y++)
+   for (int y = 0; y < num_block_ver / 10; y++)
       printf(".");
    printf("\n         ");
+   int *block = new int[block_size * block_size];
+   int *pred_block = new int[block_size * block_size];
    for (int y = 0; y < num_block_ver; y++)
    {
-      if (y % 10 == 0) printf(".", y, num_block_ver);
+      if (y % 10 == 0) printf(".");
       for (int x = 0; x < num_block_hor; x++)
       {
-         int *block = new int[block_size * block_size];
          int mv[2];
          int bestSsd;
          motion_estimation_block(reference_frame, current_frame, x * block_size, y * block_size, search_size, block_size, mv, bestSsd, fastSearch);
-         int *pred_block = new int[block_size * block_size];
          get_block(x * block_size + mv[0], y * block_size + mv[1], block_size, reference_frame, pred_block);
          set_block(x * block_size, y * block_size, block_size, prediction_frame, pred_block);
       }
    }
    printf("\n");
+   delete[] block;
+   delete[] pred_block;
    return;
 }
 
